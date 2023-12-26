@@ -13,23 +13,22 @@ from config import key
 
  # https://github.com/RomelTorres/alpha_vantage
  # Chose your output format or default to JSON (python dict)
-ts = TimeSeries(key, output_format='pandas') # 'pandas' or 'json' or 'csv'
-ms_data, ms_meta_data = ts.get_intraday(symbol='MSFT',interval='60min', outputsize='full')
-df = ms_data.copy()
-df=df.transpose()
-df.rename(index={"1. open":"open", "2. high":"high", "3. low":"low",
-                 "4. close":"close","5. volume":"volume"},inplace=True)
-df=df.reset_index().rename(columns={'index': 'indicator'})
-df = pd.melt(df,id_vars=['indicator'],var_name='date',value_name='rate')
-df = df[df['indicator']!='volume']
+# ts = TimeSeries(key, output_format='pandas') # 'pandas' or 'json' or 'csv'
+# ms_data, ms_meta_data = ts.get_intraday(symbol='MSFT',interval='60min', outputsize='full')
+# df = ms_data.copy()
+# df=df.transpose()
+# df.rename(index={"1. open":"open", "2. high":"high", "3. low":"low",
+#                  "4. close":"close","5. volume":"volume"},inplace=True)
+# df=df.reset_index().rename(columns={'index': 'indicator'})
+# df = pd.melt(df,id_vars=['indicator'],var_name='date',value_name='rate')
+# df = df[df['indicator']!='volume']
 
 # df.to_csv("ms_fin_data2.csv", index=False)
 # exit()
 
 # # # Read the data we already downloaded from the API
-# dff = pd.read_csv("ms_fin_data.csv")
-# df = dff[dff.indicator.isin(['high'])]
-# print(dff.head(10))
+dff = pd.read_csv("ms_fin_data.csv")
+dff = dff[dff.indicator.isin(['high'])]
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],meta_tags=[{"name":'viewport', 'content': 'width-device=width, initial-scale=1.0'}])
@@ -41,53 +40,57 @@ app.layout = dbc.Container([
             dbc.Card(
                 [
                     dbc.CardImg(
-                        src='/assets/msft.png',
+                        src="assets/msft.png",
                         top=True,
-                        style={"width": "6rem"},
-                    ),
-
+                        style={"width": "8rem"},
+                        className="ml-3"),
                     dbc.CardBody([
                         dbc.Row([
                             dbc.Col([
-                                html.P("Change (1D)")
-                            ]),
+                                html.P("CHANGE (1D)", className="ml-3")
+                            ],width={'size':5, 'offset':1}),
 
                             dbc.Col([
                                 dcc.Graph(id='indicator-graph', figure={},
-                                config={'displayModeBar':False})
-                            ])
+                                          config={'displayModeBar':False},
+                                          )
+                            ], width={'size':3,'offset':2})
                         ]),
+
                         dbc.Row([
                             dbc.Col([
-                                html.P("Next Col"),
-                                dcc.Graph(id='daily-line', figure = {},
-                                config={'displayModeBar':False})
-                            ])
+                                dcc.Graph(id='daily-line', figure={},
+                                          config={'displayModeBar':False})
+                            ], width=12)
                         ]),
+
                         dbc.Row([
                             dbc.Col([
-                                dbc.Button("SELL")
-                            ]),
+                                dbc.Button("SELL", className="ml-5"),
+                            ], width=4),
+
                             dbc.Col([
                                 dbc.Button("BUY")
-                            ])
-                        ]),
+                            ], width=4)
+                        ], justify="between"),
+
                         dbc.Row([
                             dbc.Col([
-                                dbc.Label(id='low-price', children='375.02'),
-                            ]),
+                                dbc.Label(id='low-price', children="12.237",
+                                          className="mt-2 ml-5 bg-white p-1 border border-primary border-top-0"),
+                            ],width=4),
                             dbc.Col([
-                                dbc.Label(id='high-price', children = '375.06')
-                            ])
-                        ])
-                    ])
+                                dbc.Label(id='high-price',
+                                          className="mt-2 bg-white p-1 border border-primary border-top-0"),
+                            ], width=4)
+                        ], justify="between")
+                    ]),
                 ],
-                style={'width':'24rem'},
-                className='mt-3'
+                style={"width": "24rem"},
+                className="mt-3"
             )
         ], width=6)
     ], justify='center'),
-
     dcc.Interval(id='update', n_intervals=0, interval=1000*5)
 ])
 
@@ -97,7 +100,7 @@ app.layout = dbc.Container([
     Input('update', 'n_intervals')
 )
 def update_graph(timer):
-    dff_rv = df.iloc[::-1]
+    dff_rv = dff.iloc[::-1]
     day_start = dff_rv[dff_rv['date'] == dff_rv['date'].min()]['rate'].values[0]
     day_end = dff_rv[dff_rv['date'] == dff_rv['date'].max()]['rate'].values[0]
     # print(day_start, day_end)
@@ -146,7 +149,7 @@ def update_graph(timer):
     Input('update', 'n_intervals')
 )
 def update_graph(timer):
-    dff_rv = df.iloc[::-1]
+    dff_rv = dff.iloc[::-1]
     fig = px.line(dff_rv, x='date', y='rate',
                    range_y=[dff_rv['rate'].min(), dff_rv['rate'].max()],
                    height=120).update_layout(margin=dict(t=0, r=0, l=0, b=20),
@@ -171,6 +174,46 @@ def update_graph(timer):
     elif day_end < day_start:
         return fig.update_traces(fill='tozeroy',
                              line={'color': 'red'})
+
+
+# Below the buttons--------------------------------------------------------
+@app.callback(
+    Output('high-price', 'children'),
+    Output('high-price', 'className'),
+    Input('update', 'n_intervals')
+)
+def update_graph(timer):
+    if timer ==0:
+        dff_filtered = dff.iloc[[21,22]]
+        print(dff_filtered)
+    elif timer == 1:
+        dff_filtered = dff.iloc[[20,21]]
+        print(dff_filtered)
+    elif timer == 2:
+        dff_filtered = dff.iloc[[19,20]]
+        print(dff_filtered)
+    elif timer == 3:
+        dff_filtered = dff.iloc[[18,19]]
+        print(dff_filtered)
+    elif timer == 4:
+        dff_filtered = dff.iloc[[17,18]]
+        print(dff_filtered)
+    elif timer == 5:
+        dff_filtered = dff.iloc[[16,17]]
+        print(dff_filtered)
+    elif timer > 5:
+        return dash.no_update
+
+    recent_high = dff_filtered['rate'].iloc[0]
+    older_high = dff_filtered['rate'].iloc[1]
+
+
+    if recent_high > older_high:
+        return recent_high, "mt-2 bg-success text-white p-1 border border-primary border-top-0"
+    elif recent_high == older_high:
+        return recent_high, "mt-2 bg-white p-1 border border-primary border-top-0"
+    elif recent_high < older_high:
+        return recent_high, "mt-2 bg-danger text-white p-1 border border-primary border-top-0"
 
 if __name__=='__main__':
     app.run_server(debug=True, port=3000)
