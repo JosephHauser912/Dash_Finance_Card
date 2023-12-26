@@ -6,11 +6,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from alpha_vantage.timeseries import TimeSeries # pip install alpha-vantage
 import requests
-from config import key
+
 
 # -------------------------------------------------------------------------------
 # Set up initial key and financial category
-
+key = 'IDF8NFXCWRVB6P8C'
  # https://github.com/RomelTorres/alpha_vantage
  # Chose your output format or default to JSON (python dict)
 ts = TimeSeries(key, output_format='pandas') # 'pandas' or 'json' or 'csv'
