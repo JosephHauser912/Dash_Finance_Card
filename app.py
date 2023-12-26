@@ -6,30 +6,30 @@ import plotly.express as px
 import plotly.graph_objects as go
 from alpha_vantage.timeseries import TimeSeries # pip install alpha-vantage
 import requests
+from config import key
 
 # -------------------------------------------------------------------------------
 # Set up initial key and financial category
 
-# key = 'IDF8NFXCWRVB6P8C' # Use your own API Key or support my channel if you're using mine :)
-#  # https://github.com/RomelTorres/alpha_vantage
-#  # Chose your output format or default to JSON (python dict)
-# ts = TimeSeries(key, output_format='pandas') # 'pandas' or 'json' or 'csv'
-# ms_data, ms_meta_data = ts.get_intraday(symbol='MSFT',interval='60min', outputsize='full')
-# df = ms_data.copy()
-# df=df.transpose()
-# df.rename(index={"1. open":"open", "2. high":"high", "3. low":"low",
-#                  "4. close":"close","5. volume":"volume"},inplace=True)
-# df=df.reset_index().rename(columns={'index': 'indicator'})
-# df = pd.melt(df,id_vars=['indicator'],var_name='date',value_name='rate')
-# df = df[df['indicator']!='volume']
+ # https://github.com/RomelTorres/alpha_vantage
+ # Chose your output format or default to JSON (python dict)
+ts = TimeSeries(key, output_format='pandas') # 'pandas' or 'json' or 'csv'
+ms_data, ms_meta_data = ts.get_intraday(symbol='MSFT',interval='60min', outputsize='full')
+df = ms_data.copy()
+df=df.transpose()
+df.rename(index={"1. open":"open", "2. high":"high", "3. low":"low",
+                 "4. close":"close","5. volume":"volume"},inplace=True)
+df=df.reset_index().rename(columns={'index': 'indicator'})
+df = pd.melt(df,id_vars=['indicator'],var_name='date',value_name='rate')
+df = df[df['indicator']!='volume']
 
 # df.to_csv("ms_fin_data2.csv", index=False)
 # exit()
 
 # # # Read the data we already downloaded from the API
-dff = pd.read_csv("ms_fin_data.csv")
-dff = dff[dff.indicator.isin(['high'])]
-print(dff.head(10))
+# dff = pd.read_csv("ms_fin_data.csv")
+# df = dff[dff.indicator.isin(['high'])]
+# print(dff.head(10))
 
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],meta_tags=[{"name":'viewport', 'content': 'width-device=width, initial-scale=1.0'}])
@@ -96,10 +96,10 @@ app.layout = dbc.Container([
     Input('update', 'n_intervals')
 )
 def update_graph(timer):
-    dff_rv = dff.iloc[::-1]
+    dff_rv = df.iloc[::-1]
     day_start = dff_rv[dff_rv['date'] == dff_rv['date'].min()]['rate'].values[0]
     day_end = dff_rv[dff_rv['date'] == dff_rv['date'].max()]['rate'].values[0]
-    print(day_start, day_end)
+    # print(day_start, day_end)
 
     fig = go.Figure(go.Indicator(
         mode ="delta",
@@ -113,8 +113,8 @@ def update_graph(timer):
         fig.update_traces(delta_increasing_color='green')
     elif day_start >= day_end:
         fig.update_traces(delta_increasing_color='red')
-    print(f"the day start value is {day_start}")
-    print(f"the day end value is {day_end}")
+    # print(f"the day start value is {day_start}")
+    # print(f"the day end value is {day_end}")
 
     return fig
 
@@ -145,7 +145,7 @@ def update_graph(timer):
     Input('update', 'n_intervals')
 )
 def update_graph(timer):
-    dff_rv = dff.iloc[::-1]
+    dff_rv = df.iloc[::-1]
     fig = px.line(dff_rv, x='date', y='rate',
                    range_y=[dff_rv['rate'].min(), dff_rv['rate'].max()],
                    height=120).update_layout(margin=dict(t=0, r=0, l=0, b=20),
