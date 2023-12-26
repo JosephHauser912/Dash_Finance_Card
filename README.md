@@ -9,4 +9,4 @@
   
 ![image](https://github.com/JosephHauser912/Dash_Finance_Card/assets/67341300/68a25422-b269-4626-9acd-5338b903560d)
 
-<p>Credit goes to Adam at **[Charming Data](https://www.youtube.com/@CharmingData)** for the walkthrough</p>
+Credit goes to Adam at **[Charming Data](https://www.youtube.com/@CharmingData)** for the walkthrough
